@@ -31,7 +31,6 @@ double similarityPercentage(const string& s1, const string& s2) {
     if (len1 == 0 || len2 == 0) return 0.0;
 
     vector<vector<int>> dp(len1 + 1, vector<int>(len2 + 1));
-
     for (size_t i = 0; i <= len1; ++i) dp[i][0] = i;
     for (size_t j = 0; j <= len2; ++j) dp[0][j] = j;
 
@@ -58,15 +57,18 @@ void clearScreen() {
 #endif
 }
 
+// Function to display help menu in a single line
+void displayHelp(bool showHint) {
+    if (!showHint) return;
+    cout << "\033[37mHelp Menu: Enter/n=next, p=previous, s=start over, q=quit, h=toggle help, d=display answer, f=change fuzzy threshold. Press Enter to continue or try a command.\033[0m\n\n";
+}
+
 int main(int argc, char* argv[]) {
     string answersFileName;
-    cout << endl;
-
     if (argc > 1) answersFileName = argv[1];
     else {
         cout << "Script File: ";
         getline(cin, answersFileName);
-        cout << endl;
     }
 
     ifstream answersFile(answersFileName);
@@ -82,33 +84,27 @@ int main(int argc, char* argv[]) {
 
     string userAnswer;
     int questionNumber = 0;
-    bool showHint = true; // toggle for showing menu options
-    double fuzzySuccessPercentage = 50.0; // default threshold
+    bool showHint = true;
+    double fuzzySuccessPercentage = 50.0;
 
     while (questionNumber < (int)answers.size() && questionNumber >= 0) {
-        cout << "\033[37mLine " << questionNumber + 1 << "\n\n> "; // show current line number above prompt
+        // Show prompt and get input
+        cout << "\033[37mLine " << questionNumber + 1 << "\n\n> ";
         getline(cin, userAnswer);
 
-        // Clear screen immediately after input, before any output
+        // Clear screen first
         clearScreen();
 
         string lowerInput = normalize(userAnswer);
+        bool answered = false;
 
-        // Toggle hint display
+        // Handle commands
         if (lowerInput == "h") {
             showHint = !showHint;
             cout << (showHint ? "Help is now on.\n\n" : "Help is now off.\n\n");
-            continue;
-        }
-
-        // Display current answer (without affecting question)
-        if (lowerInput == "d") {
+        } else if (lowerInput == "d") {
             cout << "\033[36mCurrent answer: \n\n" << answers[questionNumber] << "\033[0m\n\n";
-            continue;
-        }
-
-        // Change fuzzy success percentage
-        if (lowerInput == "f") {
+        } else if (lowerInput == "f") {
             double newPercentage;
             cout << "Enter new fuzzy success percentage (0-100, current "
                  << fuzzySuccessPercentage << "%): ";
@@ -120,45 +116,31 @@ int main(int argc, char* argv[]) {
             } else {
                 cout << "Invalid value. Must be 0-100.\n\n";
             }
-            continue;
-        }
-
-        // Navigation commands
-        if (userAnswer.empty() || lowerInput == "n") { // empty or 'n' → next
+        } else if (userAnswer.empty() || lowerInput == "n") { // next
             questionNumber++;
-            continue;
         } else if (lowerInput == "p") { // previous
             questionNumber--;
             if (questionNumber < 0) questionNumber = 0;
-            continue;
         } else if (lowerInput == "s") { // start over
             questionNumber = 0;
-            continue;
         } else if (lowerInput == "q") { // quit
             cout << "Exiting script.\n";
             break;
+        } else { // Treat as answer
+            double similarity = similarityPercentage(userAnswer, answers[questionNumber]);
+            if (similarity >= fuzzySuccessPercentage) {
+                cout << "\033[0m" << answers[questionNumber]
+                     << "\nCorrect! (" << similarity << "%)\n\n";
+                questionNumber++;
+            } else {
+                cout << "\033[31mThe answer was (" << similarity << "%): \n"
+                     << answers[questionNumber] << "\n\n\033[0m";
+            }
+            answered = true;
         }
 
-        // Check answer
-        double similarity = similarityPercentage(userAnswer, answers[questionNumber]);
-        if (similarity >= fuzzySuccessPercentage) {
-            cout << "\033[0m" << answers[questionNumber]
-                 << "\nCorrect! (" << similarity << "%)\n\n";
-            questionNumber++;
-        } else {
-            cout << "\033[31mThe answer was (" << similarity << "%): \n"
-                 << answers[questionNumber] << "\n\n\033[0m";
-            if (showHint)
-                cout << "Press Enter or 'n' for next, 'p' for previous, 's' to start over, "
-                     << "'q' to quit, 'h' to toggle help, 'd' to display answer, "
-                     << "'f' to change fuzzy threshold, or try again.\033[37m\n\n";
-        }
-
-        // Show navigation hint at empty input or after correct answer if enabled
-        if (showHint && (userAnswer.empty() || similarity >= fuzzySuccessPercentage)) {
-            cout << "Navigation: Enter/n = next, p = previous, s = start over, "
-                 << "q = quit, h = toggle help, d = display answer, f = change fuzzy threshold\n\n";
-        }
+        // Only display the help menu once per screen
+        displayHelp(showHint);
     }
 
     if (questionNumber >= (int)answers.size()) {
