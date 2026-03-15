@@ -10,5 +10,4 @@ Enter, or 'n' for next, </br>
 'h' to toggle help, </br>
 'd' to display answer,</br>
 'f' to set fuzzy percentage,</br>
-'c' to clear the screen,</br>
 Or enter an answer to try again.
