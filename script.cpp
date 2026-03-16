@@ -65,6 +65,7 @@ void displayHelp(bool showHint) {
 
 int main(int argc, char* argv[]) {
     string answersFileName;
+
     if (argc > 1) answersFileName = argv[1];
     else {
         cout << "Script File: ";
@@ -87,9 +88,10 @@ int main(int argc, char* argv[]) {
     bool showHint = true;
     double fuzzySuccessPercentage = 50.0;
 
-    while (questionNumber < (int)answers.size() && questionNumber >= 0) {
-        // Show prompt and get input
-        cout << "\033[37mLine " << questionNumber + 1 << "\n\n> ";
+    while (questionNumber < (int)answers.size() - 1 && questionNumber >= 0) {
+
+        // Show the question (odd line in file)
+        cout << "\033[33m" << answers[questionNumber] << "\033[0m\n\n> ";
         getline(cin, userAnswer);
 
         // Clear screen first
@@ -102,44 +104,54 @@ int main(int argc, char* argv[]) {
         if (lowerInput == "h") {
             showHint = !showHint;
             cout << (showHint ? "Help is now on.\n\n" : "Help is now off.\n\n");
+
         } else if (lowerInput == "d") {
-            cout << "\033[36mCurrent answer: \n\n" << answers[questionNumber] << "\033[0m\n\n";
+            cout << "\033[36mCurrent answer: \n\n"
+                 << answers[questionNumber + 1] << "\033[0m\n\n";
+
         } else if (lowerInput == "f") {
             double newPercentage;
             cout << "Enter new fuzzy success percentage (0-100, current "
                  << fuzzySuccessPercentage << "%): ";
             cin >> newPercentage;
-            cin.ignore(numeric_limits<streamsize>::max(), '\n'); // clear input buffer
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
             if (newPercentage >= 0 && newPercentage <= 100) {
                 fuzzySuccessPercentage = newPercentage;
-                cout << "Fuzzy success percentage updated to " << fuzzySuccessPercentage << "%\n\n";
+                cout << "Fuzzy success percentage updated to "
+                     << fuzzySuccessPercentage << "%\n\n";
             } else {
                 cout << "Invalid value. Must be 0-100.\n\n";
             }
+
         } else if (userAnswer.empty() || lowerInput == "n") { // next
-            questionNumber++;
+            questionNumber += 2;
+
         } else if (lowerInput == "p") { // previous
-            questionNumber--;
+            questionNumber -= 2;
             if (questionNumber < 0) questionNumber = 0;
+
         } else if (lowerInput == "s") { // start over
             questionNumber = 0;
+
         } else if (lowerInput == "q") { // quit
             cout << "Exiting script.\n";
             break;
+
         } else { // Treat as answer
-            double similarity = similarityPercentage(userAnswer, answers[questionNumber]);
+            double similarity = similarityPercentage(userAnswer, answers[questionNumber + 1]);
+
             if (similarity >= fuzzySuccessPercentage) {
-                cout << "\033[0m" << answers[questionNumber]
+                cout << "\033[0m" << answers[questionNumber + 1]
                      << "\nCorrect! (" << similarity << "%)\n\n";
-                questionNumber++;
+                questionNumber += 2;
             } else {
                 cout << "\033[31mThe answer was (" << similarity << "%): \n"
-                     << answers[questionNumber] << "\n\n\033[0m";
+                     << answers[questionNumber + 1] << "\n\n\033[0m";
             }
             answered = true;
         }
 
-        // Only display the help menu once per screen
         displayHelp(showHint);
     }
 
