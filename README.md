@@ -11,3 +11,5 @@ Enter, or 'n' for next, </br>
 'd' to display answer,</br>
 'f' to set fuzzy percentage,</br>
 Or enter an answer to try again.
+
+Every odd line of the script becomes a prompt for the user, and every even line is the answer.
