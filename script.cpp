@@ -5,6 +5,8 @@
 #include <fstream>
 #include <cctype>
 #include <limits>
+#include <cstdlib>
+#include <ctime>
 
 using namespace std;
 
@@ -60,12 +62,15 @@ void clearScreen() {
 // Function to display help menu in a single line
 void displayHelp(bool showHint) {
     if (!showHint) return;
-    cout << "\033[37mHelp Menu: Enter or n = next, p = previous, s = start over, d = display answer, q = quit, h = toggle help, f = change fuzzy threshold. Press Enter to continue or try a command.\033[0m\n\n";
+    cout << "\033[37mHelp Menu: Enter or n = next, p = previous, s = start over, d = display answer, r = random jump, h = toggle help, q = quit, f = change fuzzy threshold. Press Enter to continue or try a command.\033[0m\n\n";
 }
 
 int main(int argc, char* argv[]) {
+
+    srand(static_cast<unsigned int>(time(nullptr))); // seed RNG
+
     clearScreen();
-    
+
     string answersFileName;
 
     if (argc > 1) answersFileName = argv[1];
@@ -100,7 +105,6 @@ int main(int argc, char* argv[]) {
         clearScreen();
 
         string lowerInput = normalize(userAnswer);
-        bool answered = false;
 
         // Handle commands
         if (lowerInput == "h") {
@@ -140,6 +144,12 @@ int main(int argc, char* argv[]) {
             cout << "Exiting script.\n";
             break;
 
+        } else if (lowerInput == "r") { // random odd line jump
+            int maxOddIndex = ((int)answers.size() - 1) / 2;
+            int randomOdd = rand() % (maxOddIndex + 1);
+            questionNumber = randomOdd * 2; // ensures it's odd-numbered line (0-based)
+            cout << "\nJumped to a random question!\n\n";
+
         } else { // Treat as answer
             double similarity = similarityPercentage(userAnswer, answers[questionNumber + 1]);
 
@@ -151,7 +161,6 @@ int main(int argc, char* argv[]) {
                 cout << "\033[31mThe answer was (" << similarity << "%): \n"
                      << answers[questionNumber + 1] << "\n\n\033[0m";
             }
-            answered = true;
         }
 
         displayHelp(showHint);
