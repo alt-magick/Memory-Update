@@ -62,7 +62,7 @@ void clearScreen() {
 // Function to display help menu in a single line
 void displayHelp(bool showHint) {
     if (!showHint) return;
-    cout << "\033[37mHelp Menu: Enter or n = next, p = previous, s = start over, d = display answer, r = random jump, h = toggle help, q = quit, f = change fuzzy threshold. Press Enter to continue or try a command.\033[0m\n\n";
+    cout << "\033[37mHelp Menu: Enter or n = next, p = previous, s = start over, d = display answer, r = random jump, j = search question, h = toggle help, q = quit, f = change fuzzy threshold. Press Enter to continue or try a command.\033[0m\n\n";
 }
 
 int main(int argc, char* argv[]) {
@@ -72,7 +72,6 @@ int main(int argc, char* argv[]) {
     clearScreen();
 
     string answersFileName;
-
     if (argc > 1) answersFileName = argv[1];
     else {
         cout << "Script File: ";
@@ -110,12 +109,12 @@ int main(int argc, char* argv[]) {
         if (lowerInput == "h") {
             showHint = !showHint;
             cout << (showHint ? "Help is now on.\n\n" : "Help is now off.\n\n");
-
-        } else if (lowerInput == "d") {
+        }
+        else if (lowerInput == "d") {
             cout << "\033[36mCurrent answer: \n\n"
                  << answers[questionNumber + 1] << "\033[0m\n\n";
-
-        } else if (lowerInput == "f") {
+        }
+        else if (lowerInput == "f") {
             double newPercentage;
             cout << "Enter new fuzzy success percentage (0-100, current "
                  << fuzzySuccessPercentage << "%): ";
@@ -129,28 +128,46 @@ int main(int argc, char* argv[]) {
             } else {
                 cout << "Invalid value. Must be 0-100.\n\n";
             }
-
-        } else if (userAnswer.empty() || lowerInput == "n") { // next
+        }
+        else if (userAnswer.empty() || lowerInput == "n") { // next
             questionNumber += 2;
-
-        } else if (lowerInput == "p") { // previous
+        }
+        else if (lowerInput == "p") { // previous
             questionNumber -= 2;
             if (questionNumber < 0) questionNumber = 0;
-
-        } else if (lowerInput == "s") { // start over
+        }
+        else if (lowerInput == "s") { // start over
             questionNumber = 0;
-
-        } else if (lowerInput == "q") { // quit
+        }
+        else if (lowerInput == "q") { // quit
             cout << "Exiting script.\n";
             break;
-
-        } else if (lowerInput == "r") { // random odd line jump
+        }
+        else if (lowerInput == "r") { // random odd line jump
             int maxOddIndex = ((int)answers.size() - 1) / 2;
             int randomOdd = rand() % (maxOddIndex + 1);
             questionNumber = randomOdd * 2; // ensures it's odd-numbered line (0-based)
             cout << "\nJumped to a random question!\n\n";
-
-        } else { // Treat as answer
+        }
+        else if (lowerInput == "j") { // search jump
+            cout << "Question to search for: ";
+            string searchQuery;
+            getline(cin, searchQuery);
+            string searchNorm = normalize(searchQuery);
+            bool found = false;
+            for (size_t i = 0; i < answers.size(); i += 2) { // only odd lines
+                if (normalize(answers[i]).find(searchNorm) != string::npos) {
+                    questionNumber = (int)i;
+                    found = true;
+                    cout << "\nJumped to matching question!\n\n";
+                    break;
+                }
+            }
+            if (!found) {
+                cout << "No matching question found.\n\n";
+            }
+        }
+        else { // Treat as answer
             double similarity = similarityPercentage(userAnswer, answers[questionNumber + 1]);
 
             if (similarity >= fuzzySuccessPercentage) {
