@@ -2,7 +2,6 @@
 New memory system 
 
 Takes a script and lets you memorize it with fuzzy logic so exact answers aren't necessary.
-
 </br>
 
 The menu has these options:
