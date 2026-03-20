@@ -3,13 +3,15 @@ New memory system
 
 Takes a script and lets you memorize it with fuzzy logic so exact answers aren't necessary. The menu has these options:
 ```
-Nav:                       
+Nav:
+                   
     n/Enter - next
     p       - prev
     s       - start
     r       - random
 
-Actions:                    
+Actions:
+               
     d - show answer
     m - mark as memorized
     v - skip memorized questions
@@ -19,6 +21,7 @@ Actions:
     c - clear
 
 Other:
+
     h - help
     q - quit<
  
