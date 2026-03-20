@@ -4,7 +4,7 @@ New memory system
 Takes a script and lets you memorize it with fuzzy logic so exact answers aren't necessary. The menu has these options:
 
 Nav:   </br>                       
-    n/Enter - next</br>
+```    n/Enter - next</br>
     p       - prev</br>
     s       - start</br>
     r       - random</br>
