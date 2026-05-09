@@ -80,13 +80,13 @@ void waitForKey() {
 // Compact help
 void showHelpScreen() {
     clearScreen();
-    cout << "\033[37m=== HELP ===\n\n";
-    cout << "Navigation:\n\n";
+    cout << "\033[97m=== HELP ===\n\n"; // bright white
+    cout << "\033[95mNavigation:\n\n"; // bright magenta
     cout << " n/Enter - next\n";
     cout << " p       - previous\n";
     cout << " s       - start\n";
     cout << " r       - random\n\n";
-    cout << "Actions:\n\n";
+    cout << "\033[94mActions:\n\n"; // bright blue
     cout << " d - show answer\n";
     cout << " m - mark as memorized\n";
     cout << " v - skip memorized questions\n";
@@ -94,7 +94,7 @@ void showHelpScreen() {
     cout << " f - fuzzy %\n";
     cout << " t - statistics\n";
     cout << " c - clear\n\n";
-    cout << "Other:\n\n";
+    cout << "\033[96mOther:\n\n"; // bright cyan
     cout << " h - help\n";
     cout << " q - quit\n";
     cout << "\nPress any key...\033[0m";
@@ -123,13 +123,14 @@ void displayStatistics(const vector<bool>& memorized,
     }
     double correctPercent = answered ? (correct * 100.0 / answered) : 0.0;
     double wrongPercent   = answered ? (wrong * 100.0 / answered) : 0.0;
-    cout << "\033[36m--- Stats ---\n";
+
+    cout << "\033[96m--- Stats ---\n"; // bright cyan
     cout << "Total: " << total << "\n";
     cout << "Mem: " << mem << " (" << (total ? mem * 100.0 / total : 0) << "%)\n";
-    cout << "Correct: " << correct << " (" << correctPercent << "%)\n";
-    cout << "Wrong: " << wrong << " (" << wrongPercent << "%)\n";
-    cout << "Deck left: " << remainingDeck << "\n";
-    cout << "Fuzzy: " << fuzzySuccessPercentage << "%\n";
+    cout << "\033[92mCorrect: " << correct << " (" << correctPercent << "%)\n"; // bright green
+    cout << "\033[91mWrong: " << wrong << " (" << wrongPercent << "%)\n"; // bright red
+    cout << "\033[95mDeck left: " << remainingDeck << "\n"; // bright magenta
+    cout << "\033[93mFuzzy: " << fuzzySuccessPercentage << "%\n"; // bright yellow
     cout << "-------------\033[0m\n\n";
 }
 
@@ -140,13 +141,13 @@ int main(int argc, char* argv[]) {
     string fileName;
     if (argc > 1) fileName = argv[1];
     else {
-        cout << "Script File: ";
+        cout << "\033[97mScript File: \033[0m"; // bright white
         getline(cin, fileName);
     }
 
     ifstream file(fileName);
     if (!file) {
-        cerr << "Error opening file.\n";
+        cerr << "\033[91mError opening file.\033[0m\n"; // bright red
         return 1;
     }
 
@@ -166,7 +167,7 @@ int main(int argc, char* argv[]) {
     int deckIndex = 0;
     string input;
 
-    cout << "\033[0m(h for help)\n\n";
+    cout << "\033[97m(h for help)\033[0m\n\n"; // bright white
 
     while (q >= 0 && q < (int)answers.size() - 1) {
         if (skipMode && memorized[q]) {
@@ -177,9 +178,10 @@ int main(int argc, char* argv[]) {
             } while (memorized[q] && q != start);
         }
 
-        cout << "\033[33m" << answers[q];
-        if (memorized[q]) cout << " [MEM]";
-        if (skipMode) cout << " [SKIP]";
+        // Display question
+        cout << "\033[93m" << answers[q]; // bright yellow
+        if (memorized[q]) cout << " \033[92m[MEM]\033[93m"; // bright green
+        if (skipMode) cout << " \033[95m[SKIP]\033[93m"; // bright magenta
         cout << "\033[0m\n\n> ";
 
         getline(cin, input);
@@ -195,7 +197,7 @@ int main(int argc, char* argv[]) {
         else if (cmd == "p") q -= 2;
         else if (cmd == "s") q = 0;
         else if (cmd == "d") {
-            cout << answers[q + 1] << "\n\n";
+            cout << "\033[96m" << answers[q + 1] << "\033[0m\n\n"; // bright cyan
         }
         else if (cmd == "m") {
             memorized[q] = !memorized[q];
@@ -211,7 +213,7 @@ int main(int argc, char* argv[]) {
         }
         else if (cmd == "f") {
             double val;
-            cout << "New %: ";
+            cout << "\033[97mNew %: \033[0m"; // bright white
             cin >> val;
             cin.ignore(numeric_limits<streamsize>::max(), '\n');
             if (val >= 0 && val <= 100) fuzzy = val;
@@ -229,7 +231,7 @@ int main(int argc, char* argv[]) {
             if (!deck.empty()) q = deck[deckIndex++];
         }
         else if (cmd == "j") {
-            cout << "Search: ";
+            cout << "\033[97mSearch: \033[0m"; // bright white
             string s;
             getline(cin, s);
             string sn = normalize(s);
@@ -244,19 +246,20 @@ int main(int argc, char* argv[]) {
             // Check answer similarity but DO NOT auto-advance
             double sim = similarityPercentage(input, answers[q + 1]);
             if (sim >= fuzzy) {
-                cout << "Correct (" << sim << "%)\n\n";
+                cout << "\033[92mCorrect (" << sim << "%)\033[0m\n\n"; // bright green
                 correct[q] = true;
             } else {
-                cout << "\033[31mWrong (" << sim << "%)\n"
-                     << answers[q + 1] << "\033[0m\n\n";
+                cout << "\033[91mWrong (" << sim << "%)\n"
+                     << answers[q + 1] << "\033[0m\n\n"; // bright red
                 wrong[q] = true;
             }
         }
 
+        // Ensure question index stays in bounds
         if (q >= (int)answers.size()) q = 0;
         if (q < 0) q = (int)answers.size() - 2;
     }
 
-    cout << "Done.\n";
+    cout << "\033[97mDone.\033[0m\n"; // bright white
     return 0;
 }
